@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Mapping
 
 import numpy as np
@@ -18,21 +17,6 @@ from sklearn.metrics import (
 from ..utils import get_logger
 
 logger = get_logger(__name__)
-
-
-@dataclass(slots=True)
-class EvaluationResult:
-    """Metrics produced for a single model."""
-
-    model_name: str
-    accuracy: float
-    roc_auc: float | None
-    f1: float
-    confusion_matrix: list[list[int]]
-    classification_report: str
-    fpr: list[float] | None = None
-    tpr: list[float] | None = None
-    thresholds: list[float] | None = None
 
 
 def evaluate_classifier(
@@ -67,6 +51,8 @@ def evaluate_classifier(
         metrics["fpr"] = fpr.tolist()
         metrics["tpr"] = tpr.tolist()
         metrics["thresholds"] = thresholds.tolist()
+        # keep the original probabilities for plotting convenience
+        metrics["y_prob"] = y_prob_arr.tolist()
     else:
         metrics["roc_auc"] = None
 
@@ -96,7 +82,14 @@ def build_comparison_table(results: Mapping[str, Mapping[str, Any]]) -> list[dic
 
 
 def plot_roc_curves(results: Mapping[str, Mapping[str, Any]], y_true, ax=None):
-    """Plot ROC curves for a set of model results."""
+    """Plot ROC curves for a set of model results.
+
+    Expects each model's metrics dict to include either:
+      - 'y_prob' (iterable of predicted probabilities for the positive class), or
+      - precomputed 'fpr' and 'tpr' lists.
+
+    Returns the matplotlib Axes with the plotted curves.
+    """
 
     import matplotlib.pyplot as plt
 
@@ -104,18 +97,39 @@ def plot_roc_curves(results: Mapping[str, Mapping[str, Any]], y_true, ax=None):
         _, ax = plt.subplots(figsize=(8, 6))
 
     y_true_arr = np.asarray(y_true)
+
+    plotted_any = False
     for model_name, metrics in results.items():
-        y_prob = metrics.get("y_prob")
-        if y_prob is None:
-            continue
-        fpr, tpr, _ = roc_curve(y_true_arr, np.asarray(y_prob))
+        # prefer precomputed fpr/tpr if available
+        fpr = metrics.get("fpr")
+        tpr = metrics.get("tpr")
+
+        if fpr is None or tpr is None:
+            y_prob = metrics.get("y_prob")
+            if y_prob is None:
+                # try also the raw probabilities under another common key
+                y_prob = metrics.get("probabilities") or metrics.get("probs")
+            if y_prob is None:
+                # no ROC info for this model
+                continue
+            try:
+                fpr, tpr, _ = roc_curve(y_true_arr, np.asarray(y_prob))
+            except Exception as exc:  # pragma: no cover - defensive
+                logger.warning("Could not compute ROC curve for %s: %s", model_name, exc)
+                continue
+
         roc_value = metrics.get("roc_auc")
         label = model_name if roc_value is None else f"{model_name} (AUC = {roc_value:.3f})"
         ax.plot(fpr, tpr, label=label)
+        plotted_any = True
 
-    ax.plot([0, 1], [0, 1], "k--", label="Random baseline")
-    ax.set_xlabel("False Positive Rate")
-    ax.set_ylabel("True Positive Rate")
-    ax.set_title("ROC Curves for Churn Prediction Models")
-    ax.legend(loc="lower right")
+    if not plotted_any:
+        logger.info("No ROC curves plotted: no model provided predicted probabilities or precomputed fpr/tpr.")
+    else:
+        ax.plot([0, 1], [0, 1], "k--", label="Random baseline")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.set_title("ROC Curves for Churn Prediction Models")
+        ax.legend(loc="lower right")
+
     return ax

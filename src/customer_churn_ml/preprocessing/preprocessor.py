@@ -215,3 +215,30 @@ def preprocess_dataframe(
     preprocessor = Preprocessor(cfg)
     transformed = preprocessor.fit_transform(df)
     return transformed, preprocessor
+
+
+if __name__ == "__main__":  # pragma: no cover - CLI entry point
+    # CLI entry point for preprocessing.
+    #
+    # Usage:
+    #     python -m customer_churn_ml.preprocessing.preprocessor
+    #
+    # Behavior:
+    # - Reads the raw data CSV from config.PATHS.raw_data_file
+    # - Runs the Preprocessor.fit_transform to produce cleaned data
+    # - Saves the cleaned CSV to config.PATHS.cleaned_data_file (controlled by PreprocessorConfig.save_processed_data)
+    # - Logs progress using the module logger
+    logger.info("Starting preprocessing CLI")
+    try:
+        raw_path = PATHS.raw_data_file
+        logger.info("Loading raw data from %s", raw_path)
+        df_raw = pd.read_csv(raw_path)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.exception("Failed to load raw data from %s: %s", PATHS.raw_data_file, exc)
+        raise SystemExit(1)
+
+    cfg = PreprocessorConfig(processed_data_path=PATHS.cleaned_data_file, save_processed_data=True)
+    preprocessor = Preprocessor(cfg)
+    logger.info("Fitting preprocessor on loaded data")
+    processed_df = preprocessor.fit_transform(df_raw)
+    logger.info("Preprocessing complete. Processed data shape: %s", processed_df.shape)
