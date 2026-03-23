@@ -132,7 +132,7 @@ class Preprocessor:
                 continue
             categories = self.low_cardinality_values_[column]
             values = frame[column].fillna(MISSING_CATEGORY).astype(str)
-            categorical = pd.Categorical(values, categories=categories)
+            categorical = pd.Categorical(values.where(values.isin(categories), other=MISSING_CATEGORY), categories=categories)
             dummies = pd.get_dummies(categorical, prefix=column, drop_first=True)
             rename_map = {
                 f"{column}_{category}": f"{column}_{_slugify_category(category)}"

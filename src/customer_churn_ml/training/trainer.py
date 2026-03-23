@@ -65,7 +65,8 @@ class ModelTrainer:
     ) -> TrainingOutcome:
         """Fit candidate models, evaluate them, and select the best one."""
 
-        candidate_models = models or _build_default_models(self.config)
+        candidate_models = models if models is not None else _build_default_models(self.config)
+        
         results: dict[str, dict[str, Any]] = {}
 
         for model_name, model in candidate_models.items():

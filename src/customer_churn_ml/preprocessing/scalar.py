@@ -49,7 +49,11 @@ class NumericScaler:
         validate_columns(df, self.numeric_columns, frame_name="feature frame")
 
         transformed = df.copy()
-        transformed.loc[:, self.numeric_columns] = self.scaler_.transform(transformed.loc[:, self.numeric_columns])
+        for col in self.numeric_columns:
+            transformed[col] = transformed[col].astype("float64")
+        transformed.loc[:, self.numeric_columns] = self.scaler_.transform(
+            transformed.loc[:, self.numeric_columns]
+     )
         return transformed
 
     def fit_transform(
