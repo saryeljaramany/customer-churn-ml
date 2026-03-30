@@ -31,6 +31,7 @@ class PathConfig:
     scaler_file: Path = PROJECT_ROOT / "model" / "scaler.pkl"
     model_file: Path = PROJECT_ROOT / "model" / "churn_model.pkl"
     feature_names_file: Path = PROJECT_ROOT / "model" / "feature_names.pkl"
+    id_col: str = "customerID"
 
 
 PATHS: Final[PathConfig] = PathConfig()

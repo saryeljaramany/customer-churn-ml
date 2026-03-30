@@ -24,3 +24,11 @@ model/*.pkl
 # OS files
 .DS_Store
 Thumbs.db
+
+# Custom script and prediction files
+run_notebook_cells.py
+run_pipeline.py
+test_input.csv
+final_test_output.csv
+my_predictions_fixed.csv
+my_predictions.csv
