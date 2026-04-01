@@ -66,7 +66,7 @@ class ModelTrainer:
         """Fit candidate models, evaluate them, and select the best one."""
 
         candidate_models = models if models is not None else _build_default_models(self.config)
-        
+
         results: dict[str, dict[str, Any]] = {}
 
         for model_name, model in candidate_models.items():
@@ -139,7 +139,8 @@ def train_models(
 if __name__ == "__main__":  # pragma: no cover - CLI entry point
     # CLI-only imports moved here to avoid import-time coupling.
     from sklearn.model_selection import train_test_split
-    from ..config import TEST_SIZE, SAVE_SPLITS
+
+    from ..config import SAVE_SPLITS, TEST_SIZE
     from ..constants import TARGET_ENCODED_COL
     from ..preprocessing.scalar import NumericScaler
 
@@ -151,7 +152,8 @@ if __name__ == "__main__":  # pragma: no cover - CLI entry point
     # Behavior:
     # - Loads the cleaned/processed CSV from config.PATHS.cleaned_data_file
     # - Splits into train/test using config.TEST_SIZE and config.RANDOM_STATE
-    # - Scales numeric features using preprocessing.NumericScaler (fit on train, applied to both splits)
+    # - Scales numeric features using preprocessing.NumericScaler
+    #   (fit on train, applied to both splits)
     # - Trains default models and selects the best by ROC_AUC
     # - Saves the best model and feature names to model paths defined in config.PATHS
     # - Logs progress and prints a compact comparison table
@@ -163,11 +165,15 @@ if __name__ == "__main__":  # pragma: no cover - CLI entry point
         df = pd.read_csv(cleaned_path)
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception("Failed to load cleaned data from %s: %s", PATHS.cleaned_data_file, exc)
-        raise SystemExit(1)
+        raise SystemExit(1) from exc
 
     target_col = TARGET_ENCODED_COL
     if target_col not in df.columns:
-        logger.error("Expected target column '%s' in cleaned data; found columns: %s", target_col, list(df.columns))
+        logger.error(
+            "Expected target column '%s' in cleaned data; found columns: %s",
+            target_col,
+            list(df.columns),
+        )
         raise SystemExit(1)
 
     X = df.drop(columns=[target_col])
@@ -202,7 +208,7 @@ if __name__ == "__main__":  # pragma: no cover - CLI entry point
             logger.warning("Could not save scaler: %s", exc)
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception("Failed to fit/transform scaler: %s", exc)
-        raise SystemExit(1)
+        raise SystemExit(1) from exc
 
     # train
     trainer = ModelTrainer()

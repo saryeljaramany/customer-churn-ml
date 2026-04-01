@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -32,9 +32,7 @@ def get_feature_importance_df(
         importance_df["AbsoluteImportance"] = importance_df["Coefficient"].abs()
         importance_df = importance_df.sort_values("AbsoluteImportance", ascending=False)
     else:
-        raise ValueError(
-            "The supplied model does not expose 'feature_importances_' or 'coef_'."
-        )
+        raise ValueError("The supplied model does not expose 'feature_importances_' or 'coef_'.")
 
     if top_n is not None:
         importance_df = importance_df.head(top_n)

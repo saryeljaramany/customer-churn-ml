@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence
 
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -36,7 +36,7 @@ class NumericScaler:
     def numeric_columns(self) -> tuple[str, ...]:
         return self.config.numeric_columns
 
-    def fit(self, df: pd.DataFrame) -> "NumericScaler":
+    def fit(self, df: pd.DataFrame) -> NumericScaler:
         validate_columns(df, self.numeric_columns, frame_name="feature frame")
         self.scaler_.fit(df.loc[:, self.numeric_columns])
         self.is_fitted_ = True
@@ -53,7 +53,7 @@ class NumericScaler:
             transformed[col] = transformed[col].astype("float64")
         transformed.loc[:, self.numeric_columns] = self.scaler_.transform(
             transformed.loc[:, self.numeric_columns]
-     )
+        )
         return transformed
 
     def fit_transform(
@@ -81,7 +81,9 @@ class NumericScaler:
         return saved_path
 
     @classmethod
-    def load(cls, path: str | Path | None = None, config: ScalerConfig | None = None) -> "NumericScaler":
+    def load(
+        cls, path: str | Path | None = None, config: ScalerConfig | None = None
+    ) -> NumericScaler:
         """Load a previously saved scaler."""
 
         cfg = config or ScalerConfig()

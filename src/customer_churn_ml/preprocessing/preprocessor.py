@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
-import re
-from typing import Any
 
 import pandas as pd
 
@@ -74,19 +73,23 @@ class Preprocessor:
             frame["TotalCharges"] = frame["TotalCharges"].fillna(fill_value)
 
         if self.config.target_col in frame.columns:
-            frame[self.config.target_encoded_col] = (frame[self.config.target_col] == "Yes").astype(int)
+            frame[self.config.target_encoded_col] = (frame[self.config.target_col] == "Yes").astype(
+                int
+            )
             frame = frame.drop(columns=[self.config.target_col])
 
         return frame
 
-    def fit(self, df: pd.DataFrame) -> "Preprocessor":
+    def fit(self, df: pd.DataFrame) -> Preprocessor:
         """Learn encoding metadata from a dataframe."""
 
         if self.config.target_col not in df.columns:
             raise ValueError(f"Training data must contain '{self.config.target_col}'.")
 
         base = self._prepare_base_frame(df, fit=True)
-        self.categorical_columns_ = base.select_dtypes(include=["object", "string"]).columns.tolist()
+        self.categorical_columns_ = base.select_dtypes(
+            include=["object", "string"]
+        ).columns.tolist()
         if self.config.target_encoded_col in self.categorical_columns_:
             self.categorical_columns_.remove(self.config.target_encoded_col)
 
@@ -103,11 +106,15 @@ class Preprocessor:
                 self.low_cardinality_values_[column] = unique_values
             else:
                 self.high_cardinality_columns_.append(column)
-                self.high_cardinality_frequency_[column] = series.value_counts(normalize=True).to_dict()
+                self.high_cardinality_frequency_[column] = series.value_counts(
+                    normalize=True
+                ).to_dict()
 
         transformed = self._transform_frame(base, allow_unfitted=True)
         if self.config.target_encoded_col in transformed.columns:
-            self.feature_names_ = [column for column in transformed.columns if column != self.config.target_encoded_col]
+            self.feature_names_ = [
+                column for column in transformed.columns if column != self.config.target_encoded_col
+            ]
         else:
             self.feature_names_ = transformed.columns.tolist()
 
@@ -132,7 +139,9 @@ class Preprocessor:
                 continue
             categories = self.low_cardinality_values_[column]
             values = frame[column].fillna(MISSING_CATEGORY).astype(str)
-            categorical = pd.Categorical(values.where(values.isin(categories), other=MISSING_CATEGORY), categories=categories)
+            categorical = pd.Categorical(
+                values.where(values.isin(categories), other=MISSING_CATEGORY), categories=categories
+            )
             dummies = pd.get_dummies(categorical, prefix=column, drop_first=True)
             rename_map = {
                 f"{column}_{category}": f"{column}_{_slugify_category(category)}"
@@ -226,7 +235,8 @@ if __name__ == "__main__":  # pragma: no cover - CLI entry point
     # Behavior:
     # - Reads the raw data CSV from config.PATHS.raw_data_file
     # - Runs the Preprocessor.fit_transform to produce cleaned data
-    # - Saves the cleaned CSV to config.PATHS.cleaned_data_file (controlled by PreprocessorConfig.save_processed_data)
+    # - Saves the cleaned CSV to config.PATHS.cleaned_data_file
+    #   (controlled by PreprocessorConfig.save_processed_data)
     # - Logs progress using the module logger
     logger.info("Starting preprocessing CLI")
     try:
@@ -235,7 +245,7 @@ if __name__ == "__main__":  # pragma: no cover - CLI entry point
         df_raw = pd.read_csv(raw_path)
     except Exception as exc:  # pragma: no cover - defensive
         logger.exception("Failed to load raw data from %s: %s", PATHS.raw_data_file, exc)
-        raise SystemExit(1)
+        raise SystemExit(1) from exc
 
     cfg = PreprocessorConfig(processed_data_path=PATHS.cleaned_data_file, save_processed_data=True)
     preprocessor = Preprocessor(cfg)

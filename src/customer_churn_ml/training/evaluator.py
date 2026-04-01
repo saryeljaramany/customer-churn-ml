@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import numpy as np
 from sklearn.metrics import (
@@ -124,7 +125,10 @@ def plot_roc_curves(results: Mapping[str, Mapping[str, Any]], y_true, ax=None):
         plotted_any = True
 
     if not plotted_any:
-        logger.info("No ROC curves plotted: no model provided predicted probabilities or precomputed fpr/tpr.")
+        logger.info(
+            "No ROC curves plotted: no model provided predicted probabilities "
+            "or precomputed fpr/tpr."
+        )
     else:
         ax.plot([0, 1], [0, 1], "k--", label="Random baseline")
         ax.set_xlabel("False Positive Rate")

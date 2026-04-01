@@ -11,14 +11,16 @@ import pandas as pd
 from .config import PATHS
 from .constants import NUMERIC_COLS
 from .utils import get_logger, load_pickle
-from .preprocessing.scalar import NumericScaler
 
 logger = get_logger(__name__)
 
 
 def load_model_artifacts(model_dir: Path | None = None) -> tuple:
     """Load the trained model, feature names, and preprocessor."""
-    model_dir = model_dir or PATHS.model_dir
+    if model_dir is None:
+        model_dir = PATHS.model_dir
+    else:
+        model_dir = Path(model_dir)  # Convert string to Path
 
     model_path = model_dir / "churn_model.pkl"
     feature_names_path = model_dir / "feature_names.pkl"
@@ -68,12 +70,9 @@ def predict_churn(
     logger.info("Input shape: %s", df.shape)
 
     # Validate required ID column
-    id_col = PATHS.id_col.name if hasattr(PATHS.id_col, 'name') else str(PATHS.id_col)
+    id_col = PATHS.id_col.name if hasattr(PATHS.id_col, "name") else str(PATHS.id_col)
     if id_col not in df.columns:
-        raise ValueError(
-            f"Input must contain '{id_col}' column. "
-            f"Found columns: {list(df.columns)}"
-        )
+        raise ValueError(f"Input must contain '{id_col}' column. Found columns: {list(df.columns)}")
 
     # 2. Load model artifacts
     model, feature_names, preprocessor = load_model_artifacts(model_dir)
@@ -123,11 +122,13 @@ def predict_churn(
     customer_ids = df[id_col].values
     confidence = probabilities.copy()
 
-    results = pd.DataFrame({
-        "customer_id": customer_ids,
-        "churn_probability": probabilities.round(6),
-        "confidence": confidence.round(6)
-    })
+    results = pd.DataFrame(
+        {
+            "customer_id": customer_ids,
+            "churn_probability": probabilities.round(6),
+            "confidence": confidence.round(6),
+        }
+    )
 
     logger.info("Predictions generated for %d customers", len(results))
 
@@ -143,39 +144,31 @@ def predict_churn(
 
 def main() -> int:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Predict customer churn using trained model"
+    parser = argparse.ArgumentParser(description="Predict customer churn using trained model")
+    parser.add_argument(
+        "-i", "--input", required=True, help="Input CSV file with raw customer data"
     )
     parser.add_argument(
-        "-i", "--input",
-        required=True,
-        help="Input CSV file with raw customer data"
-    )
-    parser.add_argument(
-        "-o", "--output",
-        required=False,
-        help="Output CSV file path for predictions"
+        "-o", "--output", required=False, help="Output CSV file path for predictions"
     )
     parser.add_argument(
         "--model-dir",
         required=False,
         default=None,
-        help="Directory containing model artifacts (default: model/)"
+        help="Directory containing model artifacts (default: model/)",
     )
 
     args = parser.parse_args()
 
     try:
         results = predict_churn(
-            input_path=args.input,
-            output_path=args.output,
-            model_dir=args.model_dir
+            input_path=args.input, output_path=args.output, model_dir=args.model_dir
         )
 
         # Print summary to stdout
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("PREDICTION RESULTS")
-        print("="*60)
+        print("=" * 60)
         print(f"Total customers: {len(results)}")
         print(f"Mean churn probability: {results['churn_probability'].mean():.2%}")
         print(f"High risk (prob > 50%): {(results['churn_probability'] > 0.5).sum()} customers")

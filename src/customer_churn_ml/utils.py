@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 import pickle
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import pandas as pd
 
@@ -50,7 +51,9 @@ def ensure_directory(path: str | Path) -> Path:
     return directory
 
 
-def validate_columns(df: pd.DataFrame, required_columns: Iterable[str], *, frame_name: str = "DataFrame") -> None:
+def validate_columns(
+    df: pd.DataFrame, required_columns: Iterable[str], *, frame_name: str = "DataFrame"
+) -> None:
     """Raise a clear error if required columns are missing."""
 
     missing = [column for column in required_columns if column not in df.columns]
