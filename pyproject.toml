@@ -5,15 +5,82 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "customer_churn_ml"
 version = "0.1.0"
+description = "A machine learning pipeline for training and serving customer churn predictions."
+readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-    "pandas",
-    "scikit-learn",
-    "numpy",
-    "matplotlib",
-    "seaborn",
+authors = [{name = "Sary El Jaramany", email = "sarijaramani592@gmail.com"}]
+license = {text = "MIT"}
+keywords = ["machine-learning", "customer-churn", "classification", "scikit-learn", "data-science"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
 ]
- 
+dependencies = [
+    "numpy>=2.4.2",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.8.0",
+]
+
+[project.scripts]
+churn-predict = "customer_churn_ml.predict:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+notebook = [
+    "ipykernel",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10.8",
+    "seaborn>=0.13.2",
+]
+api = [
+    "fastapi>=0.129.0",
+    "pydantic>=2.12.5",
+    "uvicorn>=0.42.0",
+]
+dashboard = [
+    "requests>=2.32.0",
+    "streamlit>=1.55.0",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
- 
+
+[tool.setuptools.package-data]
+customer_churn_ml = []
+
+[tool.ruff]
+exclude = [
+    "__pycache__",
+    ".venv",
+    "venv",
+    "*.egg-info",
+    "notebooks",
+]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "W",
+    "UP",
+    "B",
+    "C4",
+]
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
