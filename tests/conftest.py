@@ -8,10 +8,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-
 # ---------------------------------------------------------------------------
 # Raw data — mimics the Telco CSV structure
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def raw_df() -> pd.DataFrame:
@@ -22,23 +22,50 @@ def raw_df() -> pd.DataFrame:
     - Both Churn=Yes and Churn=No rows
     - All three Contract types and all three InternetService types
     """
-    return pd.DataFrame({
-        "customerID":      ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"],
-        "tenure":          [1,    24,   60,   12,   36,   2,    48,   6],
-        "MonthlyCharges":  [29.85, 56.95, 89.10, 45.00, 70.50, 35.00, 60.00, 40.00],
-        "TotalCharges":    ["29.85", "1365.80", "", "540.00", "2538.00", "70.00", "2880.00", "240.00"],
-        "Contract":        ["Month-to-month", "One year", "Two year",
-                            "Month-to-month", "One year", "Month-to-month",
-                            "Two year", "Month-to-month"],
-        "InternetService": ["DSL", "Fiber optic", "DSL", "No",
-                            "Fiber optic", "DSL", "DSL", "Fiber optic"],
-        "Churn":           ["No", "No", "No", "Yes", "No", "Yes", "No", "Yes"],
-    })
+    return pd.DataFrame(
+        {
+            "customerID": ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"],
+            "tenure": [1, 24, 60, 12, 36, 2, 48, 6],
+            "MonthlyCharges": [29.85, 56.95, 89.10, 45.00, 70.50, 35.00, 60.00, 40.00],
+            "TotalCharges": [
+                "29.85",
+                "1365.80",
+                "",
+                "540.00",
+                "2538.00",
+                "70.00",
+                "2880.00",
+                "240.00",
+            ],
+            "Contract": [
+                "Month-to-month",
+                "One year",
+                "Two year",
+                "Month-to-month",
+                "One year",
+                "Month-to-month",
+                "Two year",
+                "Month-to-month",
+            ],
+            "InternetService": [
+                "DSL",
+                "Fiber optic",
+                "DSL",
+                "No",
+                "Fiber optic",
+                "DSL",
+                "DSL",
+                "Fiber optic",
+            ],
+            "Churn": ["No", "No", "No", "Yes", "No", "Yes", "No", "Yes"],
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
 # Preprocessed data
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def preprocessed(raw_df):
@@ -67,6 +94,7 @@ def fitted_preprocessor(preprocessed):
 # X / y splits
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def X_y(cleaned_df):
     from customer_churn_ml.constants import TARGET_ENCODED_COL
@@ -85,6 +113,7 @@ def split(X_y):
 # ---------------------------------------------------------------------------
 # Tiny fitted models (fast — 3 estimators)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def fitted_rf(split):

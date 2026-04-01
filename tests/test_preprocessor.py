@@ -21,6 +21,7 @@ def _make_config(save=False) -> PreprocessorConfig:
 # Basic output shape and schema
 # ---------------------------------------------------------------------------
 
+
 class TestOutputSchema:
     def test_customer_id_is_dropped(self, cleaned_df):
         assert "customerID" not in cleaned_df.columns
@@ -50,6 +51,7 @@ class TestOutputSchema:
 # Churn encoding
 # ---------------------------------------------------------------------------
 
+
 class TestChurnEncoding:
     def test_yes_maps_to_1(self, raw_df, cleaned_df):
         churn_yes_indices = raw_df.index[raw_df["Churn"] == "Yes"].tolist()
@@ -63,6 +65,7 @@ class TestChurnEncoding:
 # ---------------------------------------------------------------------------
 # TotalCharges coercion
 # ---------------------------------------------------------------------------
+
 
 class TestTotalChargesCoercion:
     def test_empty_string_filled_with_median(self, cleaned_df):
@@ -83,6 +86,7 @@ class TestTotalChargesCoercion:
 # ---------------------------------------------------------------------------
 # Categorical encoding
 # ---------------------------------------------------------------------------
+
 
 class TestCategoricalEncoding:
     def test_contract_one_hot_columns_created(self, cleaned_df):
@@ -110,6 +114,7 @@ class TestCategoricalEncoding:
 # Transform on unseen data (train/test schema consistency)
 # ---------------------------------------------------------------------------
 
+
 class TestTransformConsistency:
     def test_transform_produces_same_columns_as_fit_transform(self, raw_df):
         config = _make_config()
@@ -119,7 +124,7 @@ class TestTransformConsistency:
         # Transform a subset — schema must match
         test_df = preprocessor.transform(raw_df.iloc[:3])
         train_feature_cols = [c for c in train_df.columns if c != TARGET_ENCODED_COL]
-        test_feature_cols  = [c for c in test_df.columns  if c != TARGET_ENCODED_COL]
+        test_feature_cols = [c for c in test_df.columns if c != TARGET_ENCODED_COL]
         assert train_feature_cols == test_feature_cols
 
     def test_unseen_category_becomes_zero(self, raw_df):
@@ -147,6 +152,7 @@ class TestTransformConsistency:
 # fit requires target column
 # ---------------------------------------------------------------------------
 
+
 class TestFitValidation:
     def test_fit_raises_without_churn_column(self, raw_df):
         config = _make_config()
@@ -159,6 +165,7 @@ class TestFitValidation:
 # ---------------------------------------------------------------------------
 # No disk writes when save_processed_data=False
 # ---------------------------------------------------------------------------
+
 
 class TestNoDiskWrites:
     def test_no_file_written_when_save_false(self, raw_df, tmp_path):
@@ -185,6 +192,7 @@ class TestNoDiskWrites:
 # ---------------------------------------------------------------------------
 # Functional wrapper
 # ---------------------------------------------------------------------------
+
 
 class TestPreprocessDataframe:
     def test_returns_tuple_of_df_and_preprocessor(self, raw_df):

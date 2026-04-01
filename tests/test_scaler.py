@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 import pytest
 from sklearn.model_selection import train_test_split
@@ -19,6 +18,7 @@ def _make_scaler(path=None) -> NumericScaler:
 # ---------------------------------------------------------------------------
 # Fit
 # ---------------------------------------------------------------------------
+
 
 class TestFit:
     def test_is_fitted_after_fit(self, cleaned_df):
@@ -43,6 +43,7 @@ class TestFit:
 # ---------------------------------------------------------------------------
 # Transform
 # ---------------------------------------------------------------------------
+
 
 class TestTransform:
     def test_numeric_cols_are_scaled(self, cleaned_df):
@@ -86,6 +87,7 @@ class TestTransform:
 # Leakage prevention — fit only on train
 # ---------------------------------------------------------------------------
 
+
 class TestNoLeakage:
     def test_test_stats_differ_from_train_stats(self, cleaned_df):
         """Test data should NOT be zero-mean after scaling — only train data is."""
@@ -96,7 +98,7 @@ class TestNoLeakage:
         scaler = _make_scaler()
         scaler.fit(X_train)
         X_train_scaled = scaler.transform(X_train)
-        X_test_scaled  = scaler.transform(X_test)
+        X_test_scaled = scaler.transform(X_test)
 
         # Train cols should be ~zero mean; test cols will differ (small dataset)
         for col in NUMERIC_COLS:
@@ -112,6 +114,7 @@ class TestNoLeakage:
 # fit_transform convenience method
 # ---------------------------------------------------------------------------
 
+
 class TestFitTransform:
     def test_single_df_returns_dataframe(self, cleaned_df):
         X = cleaned_df.drop(columns=["Churn_Yes"])
@@ -125,12 +128,13 @@ class TestFitTransform:
         scaler = _make_scaler()
         train_scaled, test_scaled = scaler.fit_transform(X_train, X_test)
         assert train_scaled.shape == X_train.shape
-        assert test_scaled.shape  == X_test.shape
+        assert test_scaled.shape == X_test.shape
 
 
 # ---------------------------------------------------------------------------
 # Save / load roundtrip
 # ---------------------------------------------------------------------------
+
 
 class TestSaveLoad:
     def test_save_raises_when_unfitted(self, tmp_path):
@@ -148,7 +152,7 @@ class TestSaveLoad:
 
         loaded = NumericScaler.load(path)
         X_original = scaler.transform(X)
-        X_loaded   = loaded.transform(X)
+        X_loaded = loaded.transform(X)
 
         pd.testing.assert_frame_equal(X_original, X_loaded)
 

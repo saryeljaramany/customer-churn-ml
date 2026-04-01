@@ -13,6 +13,7 @@ from customer_churn_ml.training.trainer import (
     train_models,
 )
 
+
 def _no_save_config(tmp_path) -> TrainingConfig:
     return TrainingConfig(
         model_path=tmp_path / "model.pkl",
@@ -24,23 +25,20 @@ def _no_save_config(tmp_path) -> TrainingConfig:
 # TrainingOutcome shape
 # ---------------------------------------------------------------------------
 
+
 class TestTrainingOutcome:
     def test_returns_training_outcome(self, split, tmp_path):
         X_train, X_test, y_train, y_test = split
         config = _no_save_config(tmp_path)
         trainer = ModelTrainer(config)
-        outcome = trainer.train(
-            X_train, y_train, X_test, y_test, save_artifacts=False
-        )
+        outcome = trainer.train(X_train, y_train, X_test, y_test, save_artifacts=False)
         assert isinstance(outcome, TrainingOutcome)
 
     def test_outcome_has_required_attributes(self, split, tmp_path):
         X_train, X_test, y_train, y_test = split
         config = _no_save_config(tmp_path)
         trainer = ModelTrainer(config)
-        outcome = trainer.train(
-            X_train, y_train, X_test, y_test, save_artifacts=False
-        )
+        outcome = trainer.train(X_train, y_train, X_test, y_test, save_artifacts=False)
         assert outcome.best_model_name
         assert outcome.best_model is not None
         assert isinstance(outcome.results, dict)
@@ -51,9 +49,7 @@ class TestTrainingOutcome:
         X_train, X_test, y_train, y_test = split
         config = _no_save_config(tmp_path)
         trainer = ModelTrainer(config)
-        outcome = trainer.train(
-            X_train, y_train, X_test, y_test, save_artifacts=False
-        )
+        outcome = trainer.train(X_train, y_train, X_test, y_test, save_artifacts=False)
         assert outcome.feature_names == list(X_train.columns)
 
     def test_results_contains_all_models(self, split, tmp_path):
@@ -65,7 +61,10 @@ class TestTrainingOutcome:
         config = _no_save_config(tmp_path)
         trainer = ModelTrainer(config)
         outcome = trainer.train(
-            X_train, y_train, X_test, y_test,
+            X_train,
+            y_train,
+            X_test,
+            y_test,
             models=models,
             save_artifacts=False,
         )
@@ -75,6 +74,7 @@ class TestTrainingOutcome:
 # ---------------------------------------------------------------------------
 # Best model selection
 # ---------------------------------------------------------------------------
+
 
 class TestBestModelSelection:
     def test_best_model_selected_by_roc_auc(self, split, tmp_path):
@@ -86,7 +86,10 @@ class TestBestModelSelection:
         config = _no_save_config(tmp_path)
         trainer = ModelTrainer(config)
         outcome = trainer.train(
-            X_train, y_train, X_test, y_test,
+            X_train,
+            y_train,
+            X_test,
+            y_test,
             models=models,
             save_artifacts=False,
         )
@@ -94,16 +97,14 @@ class TestBestModelSelection:
         assert outcome.best_model_name in {"Dummy", "LR"}
         # Best model must have the highest or equal ROC-AUC
         best_auc = outcome.results[outcome.best_model_name]["roc_auc"]
-        for name, result in outcome.results.items():
+        for _name, result in outcome.results.items():
             assert best_auc >= (result["roc_auc"] or -1)
 
     def test_best_model_is_fitted(self, split, tmp_path):
         X_train, X_test, y_train, y_test = split
         config = _no_save_config(tmp_path)
         trainer = ModelTrainer(config)
-        outcome = trainer.train(
-            X_train, y_train, X_test, y_test, save_artifacts=False
-        )
+        outcome = trainer.train(X_train, y_train, X_test, y_test, save_artifacts=False)
         # A fitted model must be able to predict
         preds = outcome.best_model.predict(X_test)
         assert len(preds) == len(X_test)
@@ -112,6 +113,7 @@ class TestBestModelSelection:
 # ---------------------------------------------------------------------------
 # Artifact saving
 # ---------------------------------------------------------------------------
+
 
 class TestArtifactSaving:
     def test_model_file_written_when_save_true(self, split, tmp_path):
@@ -151,12 +153,16 @@ class TestArtifactSaving:
 # Functional wrapper
 # ---------------------------------------------------------------------------
 
+
 class TestTrainModels:
     def test_functional_wrapper_returns_outcome(self, split, tmp_path):
         X_train, X_test, y_train, y_test = split
         config = _no_save_config(tmp_path)
         outcome = train_models(
-            X_train, y_train, X_test, y_test,
+            X_train,
+            y_train,
+            X_test,
+            y_test,
             save_artifacts=False,
             config=config,
         )
@@ -167,6 +173,7 @@ class TestTrainModels:
 # Edge cases
 # ---------------------------------------------------------------------------
 
+
 class TestEdgeCases:
     def test_raises_when_no_models_provided(self, split, tmp_path):
         X_train, X_test, y_train, y_test = split
@@ -174,7 +181,10 @@ class TestEdgeCases:
         trainer = ModelTrainer(config)
         with pytest.raises((ValueError, Exception)):
             trainer.train(
-                X_train, y_train, X_test, y_test,
+                X_train,
+                y_train,
+                X_test,
+                y_test,
                 models={},
                 save_artifacts=False,
             )

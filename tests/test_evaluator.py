@@ -11,10 +11,10 @@ from customer_churn_ml.training.evaluator import (
     plot_roc_curves,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures — simple binary classification outputs
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def perfect_preds():
@@ -36,12 +36,20 @@ def imperfect_preds():
 # evaluate_classifier — return keys
 # ---------------------------------------------------------------------------
 
+
 class TestEvaluateClassifier:
     def test_returns_required_keys_with_proba(self, perfect_preds):
         y_true, y_pred, y_prob = perfect_preds
         result = evaluate_classifier(y_true, y_pred, y_prob)
-        for key in ("accuracy", "f1", "roc_auc", "confusion_matrix",
-                    "classification_report", "fpr", "tpr"):
+        for key in (
+            "accuracy",
+            "f1",
+            "roc_auc",
+            "confusion_matrix",
+            "classification_report",
+            "fpr",
+            "tpr",
+        ):
             assert key in result, f"Missing key: {key}"
 
     def test_returns_required_keys_without_proba(self, perfect_preds):
@@ -91,6 +99,7 @@ class TestEvaluateClassifier:
 # build_comparison_table
 # ---------------------------------------------------------------------------
 
+
 class TestBuildComparisonTable:
     @pytest.fixture
     def sample_results(self):
@@ -125,6 +134,7 @@ class TestBuildComparisonTable:
 # plot_roc_curves
 # ---------------------------------------------------------------------------
 
+
 class TestPlotRocCurves:
     @pytest.fixture
     def results_with_probs(self, perfect_preds):
@@ -134,6 +144,7 @@ class TestPlotRocCurves:
 
     def test_returns_axes(self, results_with_probs):
         import matplotlib
+
         matplotlib.use("Agg")
         results, y_true = results_with_probs
         ax = plot_roc_curves(results, y_true)
@@ -141,8 +152,10 @@ class TestPlotRocCurves:
 
     def test_uses_provided_axes(self, results_with_probs):
         import matplotlib
+
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
+
         results, y_true = results_with_probs
         _, ax_in = plt.subplots()
         ax_out = plot_roc_curves(results, y_true, ax=ax_in)
@@ -150,6 +163,7 @@ class TestPlotRocCurves:
 
     def test_handles_results_without_probs_gracefully(self, perfect_preds):
         import matplotlib
+
         matplotlib.use("Agg")
         y_true, y_pred, _ = perfect_preds
         metrics = evaluate_classifier(y_true, y_pred, y_prob=None)

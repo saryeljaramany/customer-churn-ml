@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -11,10 +10,10 @@ from customer_churn_ml.interpret.feature_importance import (
     plot_feature_importance,
 )
 
-
 # ---------------------------------------------------------------------------
 # get_feature_importance_df — Random Forest
 # ---------------------------------------------------------------------------
+
 
 class TestRandomForest:
     def test_returns_dataframe(self, fitted_rf, X_y):
@@ -58,6 +57,7 @@ class TestRandomForest:
 # get_feature_importance_df — Logistic Regression
 # ---------------------------------------------------------------------------
 
+
 class TestLogisticRegression:
     def test_returns_dataframe(self, fitted_lr, X_y):
         X, _ = X_y
@@ -96,6 +96,7 @@ class TestLogisticRegression:
 # Unsupported model
 # ---------------------------------------------------------------------------
 
+
 class TestUnsupportedModel:
     def test_raises_for_model_without_importances_or_coef(self, X_y):
         X, _ = X_y
@@ -111,9 +112,11 @@ class TestUnsupportedModel:
 # plot_feature_importance
 # ---------------------------------------------------------------------------
 
+
 class TestPlotFeatureImportance:
     def test_returns_axes_for_rf(self, fitted_rf, X_y):
         import matplotlib
+
         matplotlib.use("Agg")
         X, _ = X_y
         df = get_feature_importance_df(fitted_rf, X.columns)
@@ -122,6 +125,7 @@ class TestPlotFeatureImportance:
 
     def test_returns_axes_for_lr(self, fitted_lr, X_y):
         import matplotlib
+
         matplotlib.use("Agg")
         X, _ = X_y
         df = get_feature_importance_df(fitted_lr, X.columns)
@@ -130,8 +134,10 @@ class TestPlotFeatureImportance:
 
     def test_uses_provided_axes(self, fitted_rf, X_y):
         import matplotlib
+
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
+
         X, _ = X_y
         df = get_feature_importance_df(fitted_rf, X.columns)
         _, ax_in = plt.subplots()

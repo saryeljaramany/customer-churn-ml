@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pickle
 from pathlib import Path
 
 import pandas as pd
@@ -17,10 +16,10 @@ from customer_churn_ml.utils import (
     validate_columns,
 )
 
-
 # ---------------------------------------------------------------------------
 # resolve_path
 # ---------------------------------------------------------------------------
+
 
 class TestResolvePath:
     def test_absolute_path_returned_unchanged(self, tmp_path):
@@ -41,6 +40,7 @@ class TestResolvePath:
 # ensure_directory
 # ---------------------------------------------------------------------------
 
+
 class TestEnsureDirectory:
     def test_creates_directory_if_missing(self, tmp_path):
         new_dir = tmp_path / "nested" / "subdir"
@@ -55,6 +55,7 @@ class TestEnsureDirectory:
 # ---------------------------------------------------------------------------
 # validate_columns
 # ---------------------------------------------------------------------------
+
 
 class TestValidateColumns:
     def test_passes_when_all_columns_present(self, raw_df):
@@ -75,6 +76,7 @@ class TestValidateColumns:
 # ---------------------------------------------------------------------------
 # check_data_integrity
 # ---------------------------------------------------------------------------
+
 
 class TestCheckDataIntegrity:
     def test_returns_required_keys(self, raw_df):
@@ -111,6 +113,7 @@ class TestCheckDataIntegrity:
 # ---------------------------------------------------------------------------
 # save_pickle / load_pickle
 # ---------------------------------------------------------------------------
+
 
 class TestPickleRoundtrip:
     def test_roundtrip_dict(self, tmp_path):
