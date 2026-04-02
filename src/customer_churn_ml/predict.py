@@ -9,14 +9,14 @@ from pathlib import Path
 import pandas as pd
 
 from .config import PATHS
-from .constants import NUMERIC_COLS
+from .constants import ID_COL, NUMERIC_COLS
 from .utils import get_logger, load_pickle
 
 logger = get_logger(__name__)
 
 
 def load_model_artifacts(model_dir: Path | None = None) -> tuple:
-    """Load the trained model, feature names, and preprocessor."""
+    """Load the trained model, feature names, preprocessor, and scaler."""
     if model_dir is None:
         model_dir = PATHS.model_dir
     else:
@@ -25,9 +25,10 @@ def load_model_artifacts(model_dir: Path | None = None) -> tuple:
     model_path = model_dir / "churn_model.pkl"
     feature_names_path = model_dir / "feature_names.pkl"
     preprocessor_path = model_dir / "preprocessor.pkl"
+    scaler_path = model_dir / "scaler.pkl"
 
     # Verify all files exist
-    for path in [model_path, feature_names_path, preprocessor_path]:
+    for path in [model_path, feature_names_path, preprocessor_path, scaler_path]:
         if not path.exists():
             raise FileNotFoundError(f"Required artifact not found: {path}")
 
@@ -35,12 +36,14 @@ def load_model_artifacts(model_dir: Path | None = None) -> tuple:
     model = load_pickle(model_path)
     feature_names = load_pickle(feature_names_path)
     preprocessor = load_pickle(preprocessor_path)
+    scaler = load_pickle(scaler_path)
 
     logger.info("Loaded model from %s", model_path)
     logger.info("Loaded %d features", len(feature_names))
     logger.info("Loaded preprocessor (fitted)")
+    logger.info("Loaded scaler")
 
-    return model, feature_names, preprocessor
+    return model, feature_names, preprocessor, scaler
 
 
 def predict_churn(
@@ -70,12 +73,12 @@ def predict_churn(
     logger.info("Input shape: %s", df.shape)
 
     # Validate required ID column
-    id_col = PATHS.id_col.name if hasattr(PATHS.id_col, "name") else str(PATHS.id_col)
+    id_col = ID_COL
     if id_col not in df.columns:
         raise ValueError(f"Input must contain '{id_col}' column. Found columns: {list(df.columns)}")
 
     # 2. Load model artifacts
-    model, feature_names, preprocessor = load_model_artifacts(model_dir)
+    model, feature_names, preprocessor, scaler = load_model_artifacts(model_dir)
 
     # 3. Preprocess the input data
     try:
@@ -85,19 +88,13 @@ def predict_churn(
         raise
 
     # 4. Scale numeric features
-    model_dir_resolved = Path(model_dir) if model_dir else PATHS.model_dir
-    scaler_path = model_dir_resolved / "scaler.pkl"
-    if scaler_path.exists():
-        scaler = load_pickle(scaler_path)
-        numeric_cols_present = [col for col in NUMERIC_COLS if col in X_processed.columns]
-        if numeric_cols_present:
-            scaled_array = scaler.transform(X_processed[numeric_cols_present])
-            X_processed[numeric_cols_present] = scaled_array
-            logger.info("Applied scaling to numeric columns: %s", numeric_cols_present)
-        else:
-            logger.warning("No numeric columns found for scaling")
+    numeric_cols_present = [col for col in NUMERIC_COLS if col in X_processed.columns]
+    if numeric_cols_present:
+        scaled_array = scaler.transform(X_processed[numeric_cols_present])
+        X_processed[numeric_cols_present] = scaled_array
+        logger.info("Applied scaling to numeric columns: %s", numeric_cols_present)
     else:
-        logger.warning("Scaler not found at %s. Skipping scaling.", scaler_path)
+        logger.warning("No numeric columns found for scaling")
 
     # 5. Ensure we have exactly the features the model expects
     missing_features = set(feature_names) - set(X_processed.columns)
