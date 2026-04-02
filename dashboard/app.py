@@ -6,8 +6,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Customer Churn Risk Dashboard", page_icon="📉", layout="wide")
 
-DEFAULT_API_URL = "http://127.0.0.1:8000"
-API_BASE_URL = os.getenv("API_BASE_URL", DEFAULT_API_URL).rstrip("/")
+API_BASE_URL = (os.getenv("API_BASE_URL") or "http://127.0.0.1:8000").rstrip("/")
 REQUEST_TIMEOUT_SECONDS = float(os.getenv("API_TIMEOUT_SECONDS", "30"))
 
 
