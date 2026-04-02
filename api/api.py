@@ -164,7 +164,7 @@ async def root():
 async def health_check():
     """Health check endpoint."""
     model_dir = PATHS.model_dir
-    model_files = ["churn_model.pkl", "feature_names.pkl", "preprocessor.pkl"]
+    model_files = ["churn_model.pkl", "feature_names.pkl", "preprocessor.pkl", "scaler.pkl"]
     missing_files = [name for name in model_files if not (model_dir / name).exists()]
 
     return {
@@ -179,4 +179,8 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("API_PORT", "8000")))
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", os.getenv("API_PORT", "8000"))),
+    )
