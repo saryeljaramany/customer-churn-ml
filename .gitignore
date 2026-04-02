@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 
+
 # Virtual environment
 venv/
 
@@ -13,13 +14,6 @@ venv/
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
-
-# Data files
-data/raw/
-data/processed/
-
-# Model artifacts
-model/*.pkl
 
 # OS files
 .DS_Store
@@ -41,4 +35,6 @@ test_predictions.csv
 test_predictions2.csv
 settings.local.json
 
+
+__pycache__/__init__.cpython-314.pyc
 
