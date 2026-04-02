@@ -7,9 +7,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+import logging
+import traceback as tb
+
 from src.customer_churn_ml.config import PATHS
 from src.customer_churn_ml.constants import CONTRACT_ORDER, INTERNET_ORDER
 from src.customer_churn_ml.predict import predict_churn
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Customer Churn Prediction API",
@@ -34,12 +39,8 @@ app.add_middleware(
 )
 
 
-# Define Pydantic schema for input validation
 class CustomerInput(BaseModel):
-    # Required ID field
     customerID: str
-
-    # Core customer attributes (features only - no target variable)
     gender: str
     SeniorCitizen: int
     Partner: str
@@ -71,7 +72,6 @@ class PredictionResponse(BaseModel):
 
 @app.get("/meta")
 async def get_meta():
-    """Return API metadata and dashboard-friendly field options."""
     return {
         "service": "customer-churn-prediction",
         "version": "1.0.0",
@@ -103,19 +103,10 @@ async def get_meta():
 
 @app.post("/predict", response_model=PredictionResponse, status_code=200)
 async def predict_customer(request: PredictionRequest):
-    """
-    Predict customer churn probability for a list of customers.
 
-    Args:
-        request: JSON payload containing customer data
-
-    Returns:
-        Prediction results with churn probability and confidence
-    """
     if not request.customers:
         raise HTTPException(status_code=400, detail="At least one customer record is required.")
 
-    # Convert Pydantic models to DataFrame and write to temp CSV
     data = [customer.model_dump() for customer in request.customers]
     input_df = pd.DataFrame(data)
 
@@ -131,18 +122,23 @@ async def predict_customer(request: PredictionRequest):
                 model_dir=PATHS.model_dir,
             )
             results_list = results_df.to_dict(orient="records")
+
         except FileNotFoundError as exc:
             raise HTTPException(
                 status_code=503,
                 detail="Prediction service is not ready. Model files could not be found.",
             ) from exc
+
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
         except Exception as exc:
+            logger.error("Prediction failed:\n%s", tb.format_exc())
             raise HTTPException(
                 status_code=500,
                 detail="We could not process this request right now. Please try again.",
             ) from exc
+
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
@@ -152,7 +148,6 @@ async def predict_customer(request: PredictionRequest):
 
 @app.get("/")
 async def root():
-    """API root endpoint."""
     return {
         "message": "Customer Churn Prediction API is running",
         "version": "1.0.0",
@@ -162,7 +157,6 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint."""
     model_dir = PATHS.model_dir
     model_files = ["churn_model.pkl", "feature_names.pkl", "preprocessor.pkl", "scaler.pkl"]
     missing_files = [name for name in model_files if not (model_dir / name).exists()]
