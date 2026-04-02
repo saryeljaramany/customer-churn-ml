@@ -86,9 +86,18 @@ def save_pickle(obj: Any, path: str | Path) -> Path:
     return file_path
 
 
+class _CrossPlatformUnpickler(pickle.Unpickler):
+    """Maps WindowsPath → PosixPath when loading pickles across platforms."""
+
+    def find_class(self, module: str, name: str) -> Any:
+        if module == "pathlib" and name == "WindowsPath":
+            return Path  # resolves to PosixPath on Linux, WindowsPath on Windows
+        return super().find_class(module, name)
+
+
 def load_pickle(path: str | Path) -> Any:
-    """Load a pickled artifact."""
+    """Load a pickled artifact, handling cross-platform Path objects."""
 
     file_path = resolve_path(path)
     with file_path.open("rb") as handle:
-        return pickle.load(handle)
+        return _CrossPlatformUnpickler(handle).load()
