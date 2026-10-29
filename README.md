@@ -9,7 +9,7 @@ A production-style machine learning system that predicts customer churn for a te
 | Service | URL |
 |---|---|
 | Dashboard | https://saryeljaramany-customer-churn-ml-dashboardapp-tb6vya.streamlit.app/ |
-| API | customer-churn-ml-production.up.railway.app |
+| API | https://customer-churn-ml-production.up.railway.app |
 | API Docs | https://customer-churn-ml-production.up.railway.app/docs |
 | Health Check | https://customer-churn-ml-production.up.railway.app/health |
 
